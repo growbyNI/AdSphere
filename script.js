@@ -56,7 +56,8 @@ function calculateCTR(clicks, impressions) {
 }
 
 function closeSidebar() {
-  document.getElementById('sidebar').classList.add('hidden');
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.add('-translate-x-full');
 }
 
 function formatDate(timestamp) {
