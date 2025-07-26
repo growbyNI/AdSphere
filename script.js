@@ -55,6 +55,10 @@ function calculateCTR(clicks, impressions) {
   return impressions > 0 ? ((clicks / impressions) * 100).toFixed(2) : 0;
 }
 
+function closeSidebar() {
+  document.getElementById('sidebar').classList.add('hidden');
+}
+
 function formatDate(timestamp) {
   return new Date(timestamp).toLocaleDateString('en-US', { 
     year: 'numeric', 
