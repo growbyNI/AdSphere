@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boostify Publisher Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.3s ease-in-out',
+            'slide-up': 'slideUp 0.3s ease-out',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' }
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Add smooth transitions for the sidebar */
+#sidebar {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Prevent body scrolling when sidebar is open on mobile */
+body.sidebar-open {
+  overflow: hidden;
+}
+
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body onload="initSidebar()"
+ class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+  <div class="flex min-h-screen">
+   
+ <!-- Sidebar -->
+    <aside style="height: 100vh;" id="sidebar" class="bg-white dark:bg-gray-800 w-64 fixed md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out shadow-lg z-40">
+      <div class="p-6 flex items-center justify-between">
+        <div class="text-2xl font-bold text-primary-600 dark:text-primary-400 flex items-center gap-2">
+          <i class="fas fa-rocket"></i>
+          <span>Boostify</span>
+        </div>
+        <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+          <i class="fas fa-moon dark:hidden"></i>
+          <i class="fas fa-sun hidden dark:block"></i>
+        </button>
+      </div>
+      <nav class="mt-2">
+        <button id="dashboards" class="w-full text-left px-6 py-3 hover:bg-primary-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center gap-3 transition-colors">
+          <i class="fas fa-chart-line w-5 text-center"></i>
+          <span>Dashboard</span>
+        </button>
+        <button id="adsunit" class="w-full text-left px-6 py-3 hover:bg-primary-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center gap-3 transition-colors">
+          <i class="fas fa-ad w-5 text-center"></i>
+          <span>Ad Units</span>
+        </button>
+        <button class="w-full text-left px-6 py-3 hover:bg-primary-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center gap-3 transition-colors">
+          <i class="fas fa-wallet w-5 text-center"></i>
+          <span>Payments</span>
+        </button>
+        <button id="setting" class="w-full text-left px-6 py-3 hover:bg-primary-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center gap-3 transition-colors">
+  <i class="fas fa-cog w-5 text-center"></i>
+  <span>Settings</span>
+</button>
+      </nav>
+      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-gray-700 flex items-center justify-center">
+            <i class="fas fa-user text-primary-600 dark:text-primary-400"></i>
+          </div>
+          <div>
+            <p class="font-medium text-gray-800 dark:text-gray-200" id="userName">Loading...</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400" id="userEmail">user@example.com</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+     <div style="height: 100vh;overflow: scroll; scrollbar-width: none; width: 100%;">
+    <div  class="flex-1 overflow-x-hidden">
+    
+      <!-- Dashboard Container -->
+      <div id="dashboardd" class="p-6 space-y-6 w-full">
+        <!-- Header -->
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-3">
+              <button class="menuBtn" class="md:hidden p-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors">
+              <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+              <span id="greeting">Welcome</span>, <span id="username">Publisher</span>
+            </h1>
+          </div>
+          <button id="openModalBtn" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transition-all hover:shadow-lg">
+            <i class="fas fa-plus"></i>
+            <span>Create Ad Unit</span>
+          </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-xl text-white shadow-lg hover:shadow-xl transition-shadow animate-fade-in">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm opacity-90">Earnings</p>
+                <h2 id="earnings" class="text-2xl font-bold mt-2 flex items-center gap-1">
+                  <span class="text-lg">$</span>
+                  <span class="animate-pulse-slow">0.00</span>
+                </h2>
+              </div>
+              <i class="fas fa-dollar-sign text-white opacity-20 text-3xl"></i>
+            </div>
+            <p class="text-xs opacity-80 mt-3">+0% from last month</p>
+          </div>
+          
+          <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-5 rounded-xl text-white shadow-lg hover:shadow-xl transition-shadow animate-fade-in">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm opacity-90">Impressions</p>
+                <h2 id="impressions" class="text-2xl font-bold mt-2">0</h2>
+              </div>
+              <i class="fas fa-eye text-white opacity-20 text-3xl"></i>
+            </div>
+            <p class="text-xs opacity-80 mt-3">+0% from last month</p>
+          </div>
+          
+          <div class="bg-gradient-to-r from-green-500 to-green-600 p-5 rounded-xl text-white shadow-lg hover:shadow-xl transition-shadow animate-fade-in">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm opacity-90">Clicks</p>
+                <h2 id="clicks" class="text-2xl font-bold mt-2">0</h2>
+              </div>
+              <i class="fas fa-mouse-pointer text-white opacity-20 text-3xl"></i>
+            </div>
+            <p class="text-xs opacity-80 mt-3">+0% from last month</p>
+          </div>
+          
+          <div class="bg-gradient-to-r from-amber-500 to-amber-600 p-5 rounded-xl text-white shadow-lg hover:shadow-xl transition-shadow animate-fade-in">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm opacity-90">eCPM</p>
+                <h2 id="ecpm" class="text-2xl font-bold mt-2 flex items-center gap-1">
+                  <span class="text-lg">$</span>
+                  <span>0.00</span>
+                </h2>
+              </div>
+              <i class="fas fa-chart-line text-white opacity-20 text-3xl"></i>
+            </div>
+            <p class="text-xs opacity-80 mt-3">+0% from last month</p>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow animate-slide-up">
+          <div class="flex justify-between items-center mb-5">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Performance Overview</h2>
+            <div class="flex gap-2">
+              <button class="text-xs bg-primary-100 dark:bg-gray-700 text-primary-800 dark:text-primary-200 px-3 py-1 rounded-full">7 Days</button>
+              <button class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full">30 Days</button>
+              <button class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full">90 Days</button>
+            </div>
+          </div>
+          <canvas style="max-height: 100vh;" id="statsChart" height="300"></canvas>
+        </div>
+
+        <!-- Recent Ads Table -->
+        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow animate-slide-up">
+          <div class="flex justify-between items-center mb-5">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Recent Ad Units</h2>
+            <button class="text-sm text-primary-600 dark:text-primary-400 hover:underline">View All</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
+                  <th class="py-3 px-4 text-left">Name</th>
+                  <th class="py-3 px-4 text-left">Type</th>
+                  <th class="py-3 px-4 text-left">Status</th>
+                  <th class="py-3 px-4 text-left">Date</th>
+                  <th class="py-3 px-4 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="requestsTable" class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr>
+                  <td colspan="5" class="py-8 text-center">
+                    <div class="flex justify-center">
+                      <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ads Units Container -->
+      <div id="adss" style="display: none;" class="p-6 space-y-6 w-full">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+          <div>
+            <button class="menuBtn" class="md:hidden p-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors">
+              <i class="fas fa-bars"></i>
+            </button>
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Your Ad Units</h2>
+            <p class="text-gray-500 dark:text-gray-400">Manage and track your ad units performance</p>
+          </div>
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            <input type="text" id="searchAd" placeholder="Search ads..." class="pl-10 pr-4 py-2 border rounded-lg w-full md:w-64 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary-400 focus:border-transparent">
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="adsLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div class="border rounded-xl p-5 bg-white dark:bg-gray-800 shadow animate-pulse">
+            <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
+            <div class="space-y-2">
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+            </div>
+            <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded mt-6 w-full"></div>
+          </div>
+          <!-- Repeat 5 more times -->
+        </div>
+
+        <!-- Actual Ads Container -->
+        <div id="adsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 hidden"></div>
+      </div>
+    </div>
+ 
+   
+<!-- Settings Container -->
+<div id="settingsContainer" style="display: none;" class="p-6 space-y-6 w-full">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Account Settings</h2>
+      <p class="text-gray-500 dark:text-gray-400">Manage your account details and preferences</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Profile Settings -->
+    <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow lg:col-span-2">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-5">Profile Information</h3>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-gray-600 dark:text-gray-300 font-medium mb-2">Display Name</label>
+          <input type="text" id="displayName" placeholder="Your name" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        </div>
+        
+        <div>
+          <label class="block text-gray-600 dark:text-gray-300 font-medium mb-2">Email Address</label>
+          <input type="email" id="userEmailInput" placeholder="your@email.com" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white" disabled>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Contact support to change your email</p>
+        </div>
+        
+        <div>
+          <label class="block text-gray-600 dark:text-gray-300 font-medium mb-2">Timezone</label>
+          <select id="timezone" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <option value="auto">Auto-detect (recommended)</option>
+            <option value="UTC">UTC</option>
+            <!-- More timezone options would be added here -->
+          </select>
+        </div>
+      </div>
+      
+      <button id="saveProfileBtn"  class="...">
+    <span>Save Changes</span>
+    <i class="fas fa-spinner fa-spin hidden" id="profileSpinner"></i>
+</button>
+
+    </div>
+
+    <!-- Payment Information -->
+    <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-5">Payment Method</h3>
+      
+      <div class="space-y-4">
+        <div class="flex flex-col gap-3">
+          <label class="inline-flex items-center">
+            <input type="radio" name="paymentMethod" value="paypal" class="form-radio text-primary-600 dark:text-primary-400" checked>
+            <span class="ml-2 text-gray-700 dark:text-gray-300">PayPal</span>
+          </label>
+          <label class="inline-flex items-center">
+            <input type="radio" name="paymentMethod" value="bank" class="form-radio text-primary-600 dark:text-primary-400">
+            <span class="ml-2 text-gray-700 dark:text-gray-300">Bank Transfer</span>
+          </label>
+        </div>
+        
+        <!-- PayPal Fields -->
+        <div id="paypalFields" class="space-y-3">
+          <div>
+            <label class="block text-gray-600 dark:text-gray-300 font-medium mb-1">PayPal Email</label>
+            <input type="email" id="paypalEmail" placeholder="your@paypal.com" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          </div>
+        </div>
+        
+        <!-- Bank Transfer Fields (hidden by default) -->
+        <div id="bankFields" class="space-y-3 hidden">
+          <div>
+            <label class="block text-gray-600 dark:text-gray-300 font-medium mb-1">Account Holder Name</label>
+            <input type="text" id="bankAccountName" placeholder="Your full name" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-gray-600 dark:text-gray-300 font-medium mb-1">Bank Name</label>
+            <input type="text" id="bankName" placeholder="Bank name" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-gray-600 dark:text-gray-300 font-medium mb-1">Account Number</label>
+            <input type="text" id="bankAccountNumber" placeholder="Account number" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-gray-600 dark:text-gray-300 font-medium mb-1">IBAN/SWIFT</label>
+            <input type="text" id="bankIban" placeholder="IBAN or SWIFT code" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          </div>
+        </div>
+        
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h4 class="text-md font-medium text-gray-800 dark:text-white mb-3">Payout Settings</h4>
+          <div class="relative">
+            <span class="absolute left-3 top-3 text-gray-400">$</span>
+            <input type="number" id="payoutThreshold" value="100" min="100" class="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum balance required for automatic payout ($100 minimum)</p>
+          
+          <div class="mt-3 flex items-center">
+            <input type="checkbox" id="autoPayout" class="form-checkbox h-4 w-4 text-primary-600 dark:text-primary-400 transition duration-150 ease-in-out">
+            <label for="autoPayout" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Enable automatic payouts</label>
+          </div>
+        </div>
+        
+        <button id="savePaymentBtn" class="w-full mt-4 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors">
+          <span>Save Payment Settings</span>
+          <i class="fas fa-spinner fa-spin hidden" id="paymentSpinner"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Notification Preferences -->
+    <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow lg:col-span-2">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-5">Notification Preferences</h3>
+      
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-800 dark:text-gray-200 font-medium">Email Notifications</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Receive important updates via email</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="emailNotifications" class="sr-only peer" checked>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+          </label>
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-800 dark:text-gray-200 font-medium">Payment Alerts</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Get notified when payments are processed</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="paymentAlerts" class="sr-only peer" checked>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+          </label>
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-800 dark:text-gray-200 font-medium">Performance Reports</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Weekly performance summaries</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="performanceReports" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+          </label>
+        </div>
+      </div>
+      
+      <button id="saveNotificationsBtn" class="mt-6 px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center gap-2 transition-colors">
+        <span>Save Preferences</span>
+        <i class="fas fa-spinner fa-spin hidden" id="notificationsSpinner"></i>
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+     </div>
+     </div>
+  <!-- Create Ad Modal -->
+  <div id="modal" style="display: none;" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl w-full max-w-lg shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white">Create New Ad Unit</h3>
+        <button id="cancelModalBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="space-y-5">
+        <div>
+          <label class="block text-gray-600 dark:text-gray-300 font-medium mb-2">Ad Name</label>
+          <input id="adName" type="text" placeholder="e.g. Homepage Banner" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Give your ad unit a descriptive name</p>
+        </div>
+        <div>
+          <label class="block text-gray-600 dark:text-gray-300 font-medium mb-3">Ad Type</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button data-type="banner" class="ad-type-btn border rounded-lg p-4 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-gray-700 transition-all flex flex-col items-center">
+              <i class="fas fa-rectangle-ad text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+              <span>Banner</span>
+            </button>
+            <button data-type="inpage-push" class="ad-type-btn border rounded-lg p-4 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-gray-700 transition-all flex flex-col items-center">
+              <i class="fas fa-bullhorn text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+              <span>In-page Push</span>
+            </button>
+            <button data-type="popunder" class="ad-type-btn border rounded-lg p-4 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-gray-700 transition-all flex flex-col items-center">
+              <i class="fas fa-window-restore text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+              <span>Popunder</span>
+            </button>
+            <button data-type="native" class="ad-type-btn border rounded-lg p-4 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-gray-700 transition-all flex flex-col items-center">
+              <i class="fas fa-newspaper text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+              <span>Native Ads</span>
+            </button>
+            <button data-type="direct-link" class="ad-type-btn border rounded-lg p-4 hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-gray-700 transition-all flex flex-col items-center">
+              <i class="fas fa-link text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+              <span>Direct Link</span>
+            </button>
+          </div>
+          <input type="hidden" id="adType">
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button id="cancelModalBtn2" class="px-5 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Cancel</button>
+        <button id="createAdBtn" class="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center gap-2 transition-colors">
+          <span id="createBtnText">Create Ad</span>
+          <i class="fas fa-spinner fa-spin hidden" id="createSpinner"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Placement Code Modal -->
+  <div id="codeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl w-full max-w-lg shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="codeModalContent">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800 dark:text-white">Placement Code</h3>
+        <button onclick="closeCodeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="mb-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Copy this code and paste it in your website's HTML where you want the ad to appear.</p>
+        <textarea id="placementCodeText" readonly class="w-full h-40 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-sm"></textarea>
+      </div>
+      <div class="flex justify-between">
+        <button onclick="copyPlacementCode()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 transition-colors">
+          <i class="fas fa-copy"></i>
+          <span>Copy Code</span>
+        </button>
+        <button onclick="closeCodeModal()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebar = document.getElementById('sidebar');
+  const menuButtons = document.querySelectorAll('.menuBtn');
+
+  if (sidebar && menuButtons.length > 0) {
+    const toggleSidebar = () => {
+      const isOpening = sidebar.classList.toggle('-translate-x-full');
+      document.body.classList.toggle('sidebar-open');
+
+      // If sidebar is open, hide all menu buttons
+      menuButtons.forEach(btn => {
+        btn.style.display = sidebar.classList.contains('-translate-x-full') ? 'block' : 'none';
+      });
+    };
+
+    menuButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSidebar();
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (
+        window.innerWidth < 768 &&
+        !sidebar.contains(e.target) &&
+        !Array.from(menuButtons).includes(e.target) &&
+        !sidebar.classList.contains('-translate-x-full')
+      ) {
+        toggleSidebar();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768) {
+        sidebar.classList.remove('-translate-x-full');
+        menuButtons.forEach(btn => btn.style.display = 'block');
+      }
+    });
+  } else {
+    console.error('Could not find sidebar or menu buttons');
+  }
+});
+
+
+  </script>
+
+  
+  <script type="module" src="script.js" defer></script>
+</body>
+
+
+</html>

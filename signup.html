@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - AdSphere</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .form-input:focus {
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    .role-btn.active {
+      transform: scale(0.98);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    /* Alert styles */
+    .alert-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      max-width: 350px;
+      width: 100%;
+    }
+    .alert {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      transform: translateX(400px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .alert.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .alert-success {
+      background: linear-gradient(135deg, #f0fff4, #ffffff);
+      border-left: 4px solid #48bb78;
+    }
+    .alert-error {
+      background: linear-gradient(135deg, #fff5f5, #ffffff);
+      border-left: 4px solid #f56565;
+    }
+    .alert-info {
+      background: linear-gradient(135deg, #ebf8ff, #ffffff);
+      border-left: 4px solid #4299e1;
+    }
+    .progress-bar {
+      height: 4px;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.1);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      border-radius: 0 0 4px 4px;
+      overflow: hidden;
+    }
+    .alert-success .progress-bar::after {
+      background: #48bb78;
+    }
+    .alert-error .progress-bar::after {
+      background: #f56565;
+    }
+    .alert-info .progress-bar::after {
+      background: #4299e1;
+    }
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      left: 0;
+      animation: progress 5s linear forwards;
+    }
+    @keyframes progress {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(0); }
+    }
+    /* Password strength meter */
+    .password-strength {
+      height: 4px;
+      background-color: #e2e8f0;
+      margin-top: 8px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .password-strength-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center min-h-screen p-4">
+  <!-- Alert Container -->
+  <div class="alert-container" id="alert-container"></div>
+
+  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+    <div class="flex justify-center mb-6">
+      <div class="bg-blue-600 p-3 rounded-lg shadow-md transform hover:rotate-12 transition duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+    </div>
+    
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Join AdSphere</h1>
+    <p class="text-center text-gray-500 mb-8">Create your account to get started</p>
+    
+    <form id="signup-form" class="space-y-5">
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <div class="relative">
+          <input type="text" id="fullname" placeholder="John Doe" required 
+            class="form-input w-full border border-gray-200 rounded-lg px-4 py-3 pl-10 focus:border-blue-400 focus:outline-none transition">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-user text-gray-400"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <div class="relative">
+          <input type="email" id="email" placeholder="you@example.com" required 
+            class="form-input w-full border border-gray-200 rounded-lg px-4 py-3 pl-10 focus:border-blue-400 focus:outline-none transition">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-envelope text-gray-400"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <div class="relative">
+          <input type="password" id="password" placeholder="••••••••" required 
+            class="form-input w-full border border-gray-200 rounded-lg px-4 py-3 pl-10 focus:border-blue-400 focus:outline-none transition"
+            oninput="checkPasswordStrength(this.value)">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-lock text-gray-400"></i>
+          </div>
+        </div>
+        <div class="password-strength">
+          <div id="password-strength-fill" class="password-strength-fill"></div>
+        </div>
+        <p id="password-hint" class="text-xs text-gray-500 mt-1 hidden">Use 8+ characters with a mix of letters, numbers & symbols</p>
+      </div>
+
+      <div class="pt-2">
+        <label class="block text-sm font-medium text-gray-700 mb-3">I want to join as:</label>
+        <div class="grid grid-cols-2 gap-4">
+          <button type="button" id="advertiser-btn"
+            class="role-btn flex flex-col items-center justify-center p-4 border-2 border-blue-100 rounded-xl bg-blue-50 hover:bg-blue-100 transition-all duration-200">
+            <div class="bg-blue-100 p-3 rounded-full mb-2">
+              <i class="fas fa-bullhorn text-blue-600 text-lg"></i>
+            </div>
+            <span class="font-medium text-gray-800">Advertiser</span>
+            <span class="text-xs text-gray-500 mt-1">Promote your business</span>
+          </button>
+          
+          <button type="button" id="publisher-btn"
+            class="role-btn flex flex-col items-center justify-center p-4 border-2 border-green-100 rounded-xl bg-green-50 hover:bg-green-100 transition-all duration-200">
+            <div class="bg-green-100 p-3 rounded-full mb-2">
+              <i class="fas fa-globe text-green-600 text-lg"></i>
+            </div>
+            <span class="font-medium text-gray-800">Publisher</span>
+            <span class="text-xs text-gray-500 mt-1">Monetize your content</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <div class="flex items-center">
+          <input id="terms" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+          <label for="terms" class="ml-2 block text-sm text-gray-700">
+            I agree to the <a href="#" class="text-blue-600 hover:underline">Terms</a> and <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>
+          </label>
+        </div>
+      </div>
+    </form>
+
+    <div class="mt-6">
+      <div class="relative">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-200"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-white text-gray-500">Already have an account?</span>
+        </div>
+      </div>
+      
+      <div class="mt-6 text-center">
+        <a href="login.html" class="text-blue-600 font-medium hover:underline">Sign in instead</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR8rNHZ-0Pa0e1-os-pR1ilOSC9rHqTU4",
+      authDomain: "v-stream-d25df.firebaseapp.com",
+      databaseURL: "https://v-stream-d25df-default-rtdb.firebaseio.com",
+      projectId: "v-stream-d25df",
+      storageBucket: "v-stream-d25df.firebasestorage.app",
+      messagingSenderId: "703340028082",
+      appId: "1:703340028082:web:450e37c0d346ef9ce9e9ab"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    // Alert functions
+    function showAlert(type, message) {
+      const container = document.getElementById('alert-container');
+      const alertId = Date.now();
+      
+      const icons = {
+        success: 'fa-circle-check',
+        error: 'fa-circle-xmark',
+        info: 'fa-circle-info'
+      };
+      
+      const colors = {
+        success: 'text-green-500',
+        error: 'text-red-500',
+        info: 'text-blue-500'
+      };
+      
+      const titles = {
+        success: 'Success',
+        error: 'Error',
+        info: 'Information'
+      };
+      
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type} mb-4 p-4 rounded-lg relative overflow-hidden`;
+      alert.id = `alert-${alertId}`;
+      alert.innerHTML = `
+        <div class="flex items-start">
+          <div class="flex-shrink-0 ${colors[type]} text-xl mr-3 mt-1">
+            <i class="fas ${icons[type]}"></i>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-800">${titles[type]}</h3>
+            <p class="text-gray-600 mt-1">${message}</p>
+          </div>
+          <button onclick="removeAlert(${alertId})" class="text-gray-400 hover:text-gray-500 ml-4">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="progress-bar"></div>
+      `;
+      
+      container.appendChild(alert);
+      
+      setTimeout(() => {
+        alert.classList.add('show');
+      }, 10);
+      
+      setTimeout(() => {
+        removeAlert(alertId);
+      }, 5000);
+    }
+    
+    function removeAlert(id) {
+      const alert = document.getElementById(`alert-${id}`);
+      if (alert) {
+        alert.classList.remove('show');
+        setTimeout(() => {
+          alert.remove();
+        }, 300);
+      }
+    }
+    
+    // Password strength checker
+    function checkPasswordStrength(password) {
+      const strengthFill = document.getElementById('password-strength-fill');
+      const hint = document.getElementById('password-hint');
+      
+      if (!password) {
+        strengthFill.style.width = '0%';
+        strengthFill.style.backgroundColor = '';
+        hint.classList.add('hidden');
+        return;
+      }
+      
+      hint.classList.remove('hidden');
+      
+      // Calculate strength
+      let strength = 0;
+      if (password.length >= 8) strength += 1;
+      if (password.match(/[A-Z]/)) strength += 1;
+      if (password.match(/[0-9]/)) strength += 1;
+      if (password.match(/[^A-Za-z0-9]/)) strength += 1;
+      
+      // Update UI
+      const width = strength * 25;
+      let color;
+      
+      if (strength <= 1) {
+        color = '#f56565'; // red
+      } else if (strength <= 2) {
+        color = '#ed8936'; // orange
+      } else if (strength <= 3) {
+        color = '#ecc94b'; // yellow
+      } else {
+        color = '#48bb78'; // green
+      }
+      
+      strengthFill.style.width = `${width}%`;
+      strengthFill.style.backgroundColor = color;
+    }
+
+    // Add active state to role buttons
+    document.querySelectorAll('.role-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active', 'border-blue-400', 'border-green-400'));
+        this.classList.add('active');
+        if(this.id === 'advertiser-btn') {
+          this.classList.add('border-blue-400');
+        } else {
+          this.classList.add('border-green-400');
+        }
+      });
+    });
+
+    async function signUp(role) {
+      const fullname = document.getElementById('fullname').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const termsChecked = document.getElementById('terms').checked;
+
+      if (!fullname || !email || !password) {
+        showAlert('error', 'Please fill all fields');
+        return;
+      }
+
+      if (!termsChecked) {
+        showAlert('error', 'Please agree to the terms and privacy policy');
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await updateProfile(user, { displayName: fullname });
+
+        // Save role (advertiser or publisher) in Realtime Database
+        await set(ref(database, `${role}/${user.uid}`), {
+          fullname,
+          email,
+          createdAt: Date.now()
+        });
+
+        // Show success message with role
+        const roleName = role === 'advertiser' ? 'Advertiser' : 'Publisher';
+        showAlert('success', `Your ${roleName} account has been created successfully!`);
+        
+        // Redirect after a short delay
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1500);
+      } catch (error) {
+        let errorMessage = "An error occurred during sign up.";
+        switch(error.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = "This email is already registered. Please sign in.";
+            break;
+          case 'auth/invalid-email':
+            errorMessage = "Please enter a valid email address.";
+            break;
+          case 'auth/weak-password':
+            errorMessage = "Password should be at least 6 characters.";
+            break;
+        }
+        showAlert('error', errorMessage);
+      }
+    }
+
+    document.getElementById('advertiser-btn').addEventListener('click', () => signUp("advertiser"));
+    document.getElementById('publisher-btn').addEventListener('click', () => signUp("publisher"));
+
+    // Make functions available globally for alerts
+    window.showAlert = showAlert;
+    window.removeAlert = removeAlert;
+  </script>
+</body>
+</html>

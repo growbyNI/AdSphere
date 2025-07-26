@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boostify Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              600: '#0284c7',
+              700: '#0369a1',
+            },
+            success: {
+              600: '#16a34a',
+              700: '#15803d',
+            },
+            warning: {
+              600: '#ea580c',
+              700: '#c2410c',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .transition-all {
+      transition: all 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    /* Add to your <style> section */
+    #sidebar {
+      transition: transform 0.3s ease-in-out;
+      will-change: transform;
+    }
+
+    body.sidebar-open {
+      overflow: hidden;
+    }
+
+    @media (min-width: 768px) {
+      #sidebar {
+        transform: translateX(0) !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+  <div
+    class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-30 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out"
+    id="sidebar">
+    <div class="flex items-center justify-center h-16 px-4 bg-primary-700 text-white">
+      <div class="flex items-center space-x-2">
+        <span class="text-xl font-bold">Boostify</span>
+      </div>
+    </div>
+    <nav class="mt-6 px-2">
+      <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        Main
+      </div><a href="#"
+        class="flex items-center px-4 py-3 text-gray-700 bg-primary-100 rounded-lg"><span>Dashboard</span></a>
+      <div class="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        Management
+      </div><a href="#"
+        class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-all"><span>Ad
+          Requests</span> <span class="ml-auto bg-primary-600 text-white text-xs px-2 py-1 rounded-full"
+          id="pendingCount">0</span></a> <a href="#"
+        class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-all"><span>Approved
+          Ads</span> <span class="ml-auto bg-success-600 text-white text-xs px-2 py-1 rounded-full"
+          id="approvedCount">0</span></a> <a href="#"
+        class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-all"><span>Publishers</span>
+        <span class="ml-auto bg-purple-600 text-white text-xs px-2 py-1 rounded-full" id="publisherCount">0</span></a>
+    </nav>
+  </div>
+  <div class="md:ml-64 transition-all duration-300">
+    <header class="bg-white shadow-sm">
+      <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+          <button id="menuBtn" class="md:hidden p-2 text-gray-600 hover:text-gray-800 focus:outline-none">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <h1 class="text-xl font-semibold text-gray-800">Ad Management Dashboard</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <button class="text-gray-600 hover:text-gray-800"><span
+                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                id="notificationCount">0</span></button>
+          </div>
+          <div class="relative">
+            <button class="flex items-center space-x-2"><img
+                src="https://ui-avatars.com/api/?name=Admin&amp;background=0284c7&amp;color=fff" alt="Admin"
+                class="w-8 h-8 rounded-full"> <span class="hidden md:inline text-gray-700">Admin</span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="px-6 py-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl shadow p-4 animate-fadeIn">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Pending Requests</p>
+              <h3 class="text-2xl font-bold" id="pendingStats">0</h3>
+            </div>
+            <div class="p-3 rounded-full bg-primary-50 text-primary-600"></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4 animate-fadeIn" style="animation-delay: 0.1s">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Approved Ads</p>
+              <h3 class="text-2xl font-bold" id="approvedStats">0</h3>
+            </div>
+            <div class="p-3 rounded-full bg-green-50 text-green-600"></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4 animate-fadeIn" style="animation-delay: 0.2s">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Total Earnings</p>
+              <h3 class="text-2xl font-bold">$<span id="earningsStats">0.00</span></h3>
+            </div>
+            <div class="p-3 rounded-full bg-purple-50 text-purple-600"></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4 animate-fadeIn" style="animation-delay: 0.3s">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Active Publishers</p>
+              <h3 class="text-2xl font-bold" id="publishersStats">0</h3>
+            </div>
+            <div class="p-3 rounded-full bg-blue-50 text-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <main class="px-6 py-4">
+      <div class="bg-white rounded-xl shadow mb-6 overflow-hidden animate-fadeIn">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center">Pending Ad Requests</h2>
+          <div class="relative">
+            <input type="text" id="searchPending" placeholder="Search requests..."
+              class="border rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent">
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="py-3 px-4 text-left">Publisher</th>
+                <th class="py-3 px-4 text-left">Ad Name</th>
+                <th class="py-3 px-4 text-left">Type</th>
+                <th class="py-3 px-4 text-left">Date</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y" id="pendingTable"></tbody>
+          </table>
+        </div>
+        <div class="px-6 py-3 border-t bg-gray-50 text-right">
+          <button class="text-primary-600 hover:text-primary-800 text-sm font-medium">View All Requests</button>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl shadow overflow-hidden animate-fadeIn" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center">Approved Ads</h2>
+          <div class="flex space-x-2">
+            <div class="relative">
+              <input type="text" id="searchApproved" placeholder="Search ads..."
+                class="border rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent">
+            </div><button id="openModalBtn"
+              class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-all flex items-center"><span>New
+                Ad</span></button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="py-3 px-4 text-left">Ad ID</th>
+                <th class="py-3 px-4 text-left">Publisher</th>
+                <th class="py-3 px-4 text-left">Name</th>
+                <th class="py-3 px-4 text-left">Category</th>
+                <th class="py-3 px-4 text-left">Impressions</th>
+                <th class="py-3 px-4 text-left">Clicks</th>
+                <th class="py-3 px-4 text-left">eCPM</th>
+                <th class="py-3 px-4 text-left">Earnings</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y" id="approvedTable"></tbody>
+          </table>
+        </div>
+        <div class="px-6 py-3 border-t bg-gray-50 flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span
+              class="font-medium" id="totalApprovedAds">0</span> results
+          </div>
+          <div class="flex space-x-1">
+            <button class="px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-100">«</button> <button
+              class="px-3 py-1 border rounded-lg bg-primary-600 text-white">1</button> <button
+              class="px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-100">2</button> <button
+              class="px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-100">3</button> <button
+              class="px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-100">»</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div id="createAdModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl w-full max-w-md shadow-xl transform transition-all duration-300 scale-95 opacity-0"
+      id="createAdModalContent">
+      <div class="flex items-center justify-between px-6 py-4 border-b">
+        <h3 class="text-xl font-semibold flex items-center">Create New Ad Unit</h3><button id="closeCreateModalBtn"
+          class="text-gray-400 hover:text-gray-600"></button>
+      </div>
+      <div class="p-6">
+        <div class="mb-4">
+          <label for="adName" class="block text-sm font-medium text-gray-700 mb-1">Ad Name</label> <input type="text"
+            id="adName"
+            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+            placeholder="Enter ad name">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Ad Type</label>
+          <div class="grid grid-cols-2 gap-3">
+            <p class="text-sm font-medium"><button type="button"
+                class="ad-type-btn border rounded-lg p-3 text-center hover:bg-gray-50 transition-all"
+                data-type="banner">Banner</button></p>
+            <p class="text-sm font-medium"><button type="button"
+                class="ad-type-btn border rounded-lg p-3 text-center hover:bg-gray-50 transition-all"
+                data-type="inpage-push">In-page Push</button></p>
+            <p class="text-sm font-medium"><button type="button"
+                class="ad-type-btn border rounded-lg p-3 text-center hover:bg-gray-50 transition-all"
+                data-type="popunder">Popunder</button></p>
+            <p class="text-sm font-medium"><button type="button"
+                class="ad-type-btn border rounded-lg p-3 text-center hover:bg-gray-50 transition-all"
+                data-type="native">Native</button></p>
+          </div><input type="hidden" id="adType" value="">
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t flex justify-end space-x-3">
+        <button id="cancelCreateBtn"
+          class="px-6 py-2 border rounded-lg text-gray-700 hover:bg-gray-50 transition-all">Cancel</button> <button
+          id="createAdBtn"
+          class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all flex items-center"><span
+            id="createBtnText">Create Ad</span> <span id="createSpinner" class="hidden ml-2"></span></button>
+      </div>
+    </div>
+  </div>
+  <div id="reviewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl w-full max-w-2xl shadow-xl transform transition-all duration-300 scale-95 opacity-0"
+      id="modalContent">
+      <div class="flex items-center justify-between px-6 py-4 border-b">
+        <h3 class="text-xl font-semibold flex items-center">Review Ad Request</h3><button id="closeReviewModalBtn"
+          class="text-gray-400 hover:text-gray-600"></button>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Publisher Email</label>
+            <div class="bg-gray-50 p-3 rounded-lg" id="modalPublisherEmail">
+              loading...
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Generated Ad ID</label>
+            <div class="bg-gray-50 p-3 rounded-lg font-mono" id="generatedAdId">
+              loading...
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ad Name</label>
+            <div class="bg-gray-50 p-3 rounded-lg" id="modalAdName">
+              loading...
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ad Type</label>
+            <div class="bg-gray-50 p-3 rounded-lg" id="modalAdType">
+              loading...
+            </div>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label for="categorySelect" class="block text-sm font-medium text-gray-700 mb-1">Category</label> <select
+            id="categorySelect"
+            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary-600 focus:border-transparent">
+            <option>
+              Popunder
+            </option>
+            <option>
+              In-page push
+            </option>
+            <option>
+              Banner
+            </option>
+            <option>
+              Native ads
+            </option>
+            <option>
+              Direct link
+            </option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="placementCode" class="block text-sm font-medium text-gray-700 mb-1">Placement Code</label>
+          <textarea id="placementCode"
+            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-primary-600 focus:border-transparent" rows="4"
+            placeholder="Paste placement code here..."></textarea>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t flex justify-end space-x-3">
+        <button id="cancelReviewBtn"
+          class="px-6 py-2 border rounded-lg text-gray-700 hover:bg-gray-50 transition-all">Cancel</button> <button
+          id="approveAdBtn"
+          class="px-6 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-all flex items-center">Approve
+          Ad</button>
+      </div>
+    </div>
+  </div>
+  <div id="codeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl w-full max-w-2xl shadow-xl transform transition-all duration-300 scale-95 opacity-0"
+      id="codeModalContent">
+      <div class="flex items-center justify-between px-6 py-4 border-b">
+        <h3 class="text-xl font-semibold flex items-center">Placement Code</h3><button id="closeCodeModalBtn"
+          class="text-gray-400 hover:text-gray-600"></button>
+      </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-600 mb-4">Copy and paste this code into your website where you want the ad to
+          appear.</p>
+        <textarea id="placementCodeText"
+          class="w-full border rounded-lg p-3 font-mono text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+          rows="8" readonly></textarea>
+      </div>
+      <div class="px-6 py-4 border-t flex justify-end space-x-3">
+        <button id="closeCodeBtn"
+          class="px-6 py-2 border rounded-lg text-gray-700 hover:bg-gray-50 transition-all">Close</button> <button
+          id="copyCodeBtn"
+          class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all flex items-center"><span>Copy
+            Code</span></button>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getDatabase, ref, onValue, update, push, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR8rNHZ-0Pa0e1-os-pR1ilOSC9rHqTU4",
+      authDomain: "v-stream-d25df.firebaseapp.com",
+      databaseURL: "https://v-stream-d25df-default-rtdb.firebaseio.com",
+      projectId: "v-stream-d25df",
+      storageBucket: "v-stream-d25df.appspot.com",
+      messagingSenderId: "703340028082",
+      appId: "1:703340028082:web:450e37c0d346ef9ce9e9ab"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    class AdminPanel {
+      constructor() {
+        this.selectedAdKey = null;
+        this.selectedAdData = null;
+        this.allAds = [];
+
+        this.initElements();
+        this.initEventListeners();
+        this.loadAllData();
+      }
+
+      initElements() {
+        // Main elements
+        this.sidebar = document.getElementById('sidebar');
+        this.menuBtn = document.getElementById('menuBtn');
+
+        // Modal elements
+        this.createAdModal = document.getElementById('createAdModal');
+        this.createAdModalContent = document.getElementById('createAdModalContent');
+        this.openModalBtn = document.getElementById('openModalBtn');
+        this.closeCreateModalBtn = document.getElementById('closeCreateModalBtn');
+        this.cancelCreateBtn = document.getElementById('cancelCreateBtn');
+        this.createAdBtn = document.getElementById('createAdBtn');
+        this.createBtnText = document.getElementById('createBtnText');
+        this.createSpinner = document.getElementById('createSpinner');
+
+        this.reviewModal = document.getElementById('reviewModal');
+        this.modalContent = document.getElementById('modalContent');
+        this.closeReviewModalBtn = document.getElementById('closeReviewModalBtn');
+        this.cancelReviewBtn = document.getElementById('cancelReviewBtn');
+        this.approveAdBtn = document.getElementById('approveAdBtn');
+
+        this.codeModal = document.getElementById('codeModal');
+        this.codeModalContent = document.getElementById('codeModalContent');
+        this.closeCodeModalBtn = document.getElementById('closeCodeModalBtn');
+        this.closeCodeBtn = document.getElementById('closeCodeBtn');
+        this.copyCodeBtn = document.getElementById('copyCodeBtn');
+
+        // Form elements
+        this.adName = document.getElementById('adName');
+        this.adType = document.getElementById('adType');
+        this.adTypeBtns = document.querySelectorAll('.ad-type-btn');
+
+        // Search elements
+        this.searchPending = document.getElementById('searchPending');
+        this.searchApproved = document.getElementById('searchApproved');
+      }
+
+      
+      initEventListeners() {
+        // Sidebar toggle
+        this.menuBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.sidebar.classList.toggle('-translate-x-full');
+          document.body.classList.toggle('sidebar-open');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+          if (window.innerWidth < 768 &&
+            !this.sidebar.contains(e.target) &&
+            e.target !== this.menuBtn &&
+            !this.sidebar.classList.contains('-translate-x-full')) {
+            this.sidebar.classList.add('-translate-x-full');
+            document.body.classList.remove('sidebar-open');
+          }
+        });
+
+        // Handle window resize
+        const handleResize = () => {
+          if (window.innerWidth >= 768) {
+            this.sidebar.classList.remove('-translate-x-full');
+          }
+        };
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // Initialize on load
+
+        // Create Ad Modal
+        this.openModalBtn.addEventListener('click', () => this.toggleCreateAdModal(true));
+        this.closeCreateModalBtn.addEventListener('click', () => this.toggleCreateAdModal(false));
+        this.cancelCreateBtn.addEventListener('click', () => this.toggleCreateAdModal(false));
+        this.createAdBtn.addEventListener('click', () => this.createAd());
+
+        // Review Modal
+        this.closeReviewModalBtn.addEventListener('click', () => this.toggleReviewModal(false));
+        this.cancelReviewBtn.addEventListener('click', () => this.toggleReviewModal(false));
+        this.approveAdBtn.addEventListener('click', () => this.approveAd());
+
+        // Code Modal
+        this.closeCodeModalBtn.addEventListener('click', () => this.closeCodeModal());
+        this.closeCodeBtn.addEventListener('click', () => this.closeCodeModal());
+        this.copyCodeBtn.addEventListener('click', () => this.copyPlacementCode());
+
+        // Ad Type Selection
+        this.adTypeBtns.forEach(button => {
+          button.addEventListener('click', () => {
+            this.adTypeBtns.forEach(btn => {
+              btn.classList.remove('border-primary-500', 'bg-primary-50');
+            });
+            button.classList.add('border-primary-500', 'bg-primary-50');
+            this.adType.value = button.dataset.type;
+          });
+        });
+
+        // Search functionality
+        this.searchPending?.addEventListener('input', (e) => {
+          const searchTerm = e.target.value.toLowerCase();
+          const pendingAds = this.allAds.filter(ad =>
+            ad.status === "Pending" &&
+            (
+              ad.name.toLowerCase().includes(searchTerm) ||
+              ad.publisherEmail?.toLowerCase().includes(searchTerm) ||
+              ad.type.toLowerCase().includes(searchTerm)
+            ));
+          this.renderPendingTable(pendingAds);
+        });
+
+        this.searchApproved?.addEventListener('input', (e) => {
+          const searchTerm = e.target.value.toLowerCase();
+          const approvedAds = this.allAds.filter(ad =>
+            ad.status === "Approved" &&
+            (
+              ad.name.toLowerCase().includes(searchTerm) ||
+              ad.publisherEmail?.toLowerCase().includes(searchTerm) ||
+              ad.type.toLowerCase().includes(searchTerm)
+            )
+          );
+          this.renderApprovedTable(approvedAds);
+        });
+      }
+
+      loadAllData() {
+        const adUnitsRef = ref(db, 'boostify/adUnits');
+        const publishersRef = ref(db, 'publisher');
+
+        onValue(adUnitsRef, (snapshot) => {
+          const data = snapshot.val() || {};
+          this.allAds = Object.keys(data).map(key => ({
+            key,
+            ...data[key]
+          }));
+
+          this.filterAndDisplayAds();
+        });
+
+        onValue(publishersRef, (snapshot) => {
+          const data = snapshot.val() || {};
+          const publisherCount = Object.keys(data).length;
+          document.getElementById('publisherCount').textContent = publisherCount;
+          document.getElementById('publishersStats').textContent = publisherCount;
+        });
+      }
+
+      filterAndDisplayAds() {
+        const pendingAds = this.allAds.filter(ad => ad.status === "Pending");
+        const approvedAds = this.allAds.filter(ad => ad.status === "Approved");
+
+        // Update counters
+        document.getElementById('pendingCount').textContent = pendingAds.length;
+        document.getElementById('pendingStats').textContent = pendingAds.length;
+        document.getElementById('approvedCount').textContent = approvedAds.length;
+        document.getElementById('approvedStats').textContent = approvedAds.length;
+        document.getElementById('totalApprovedAds').textContent = approvedAds.length;
+
+        // Calculate total earnings
+        const totalEarnings = approvedAds.reduce((sum, ad) => sum + (ad.earnings || 0), 0);
+        document.getElementById('earningsStats').textContent = totalEarnings.toFixed(2);
+
+        // Render tables
+        this.renderPendingTable(pendingAds);
+        this.renderApprovedTable(approvedAds);
+      }
+
+      renderPendingTable(ads) {
+        const pendingTable = document.getElementById('pendingTable');
+        pendingTable.innerHTML = '';
+
+        if (ads.length === 0) {
+          pendingTable.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-gray-500">
+                                <i class="fas fa-check-circle text-3xl text-gray-300 mb-2"></i>
+                                <p class="text-lg">No pending ad requests</p>
+                                <p class="text-sm mt-1">All ad requests have been processed</p>
+                            </td>
+                        </tr>`;
+          return;
+        }
+
+        ads.forEach(ad => {
+          const date = new Date(ad.createdAt || Date.now());
+          const formattedDate = date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+
+          pendingTable.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition-all">
+                            <td class="py-4 px-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=${encodeURIComponent(ad.publisherEmail?.charAt(0) || 'U')}&background=random" alt="">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">${ad.publisherEmail || ad.publisherId}</div>
+                                        <div class="text-sm text-gray-500">${formattedDate}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 text-sm text-gray-900">${ad.name}</td>
+                            <td class="py-4 px-4">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    ${ad.type}
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-sm text-gray-500">${formattedDate}</td>
+                            <td class="py-4 px-4 text-right text-sm font-medium">
+                                <button onclick="adminPanel.toggleReviewModal(true, '${ad.key}', ${JSON.stringify(ad).replace(/"/g, '&quot;')})"
+                                    class="text-primary-600 hover:text-primary-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="text-success-600 hover:text-success-900">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+        });
+      }
+
+      renderApprovedTable(ads) {
+        const approvedTable = document.getElementById('approvedTable');
+        approvedTable.innerHTML = '';
+
+        if (ads.length === 0) {
+          approvedTable.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="py-8 text-center text-gray-500">
+                                <i class="fas fa-ad text-3xl text-gray-300 mb-2"></i>
+                                <p class="text-lg">No approved ads yet</p>
+                                <p class="text-sm mt-1">Approve some ad requests to see them here</p>
+                            </td>
+                        </tr>`;
+          return;
+        }
+
+        ads.forEach(ad => {
+          approvedTable.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition-all">
+                            <td class="py-4 px-4 text-sm font-mono text-primary-600">${ad.adId || 'N/A'}</td>
+                            <td class="py-4 px-4 text-sm text-gray-900">${ad.publisherEmail || ad.publisherId}</td>
+                            <td class="py-4 px-4 text-sm text-gray-900">${ad.name}</td>
+                            <td class="py-4 px-4">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                    ${ad.category || 'N/A'}
+                                </span>
+                            </td>
+                            <td class="py-4 px-4">
+                                <input type="number" id="imp-${ad.key}" value="${ad.impressions || 0}" 
+                                    class="w-20 border rounded p-1 focus:ring-2 focus:ring-primary-600 focus:border-transparent">
+                            </td>
+                            <td class="py-4 px-4">
+                                <input type="number" id="clicks-${ad.key}" value="${ad.clicks || 0}" 
+                                    class="w-20 border rounded p-1 focus:ring-2 focus:ring-primary-600 focus:border-transparent">
+                            </td>
+                            <td class="py-4 px-4">
+                                <input type="number" step="0.01" id="ecpm-${ad.key}" value="${ad.ecpm || 0}" 
+                                    class="w-20 border rounded p-1 focus:ring-2 focus:ring-primary-600 focus:border-transparent">
+                            </td>
+                            <td class="py-4 px-4">
+                                <input type="number" step="0.01" id="earn-${ad.key}" value="${ad.earnings || 0}" 
+                                    class="w-20 border rounded p-1 focus:ring-2 focus:ring-primary-600 focus:border-transparent">
+                            </td>
+                            <td class="py-4 px-4 text-right text-sm font-medium">
+                                <button onclick="adminPanel.updateAdData('${ad.key}')" 
+                                    class="text-white bg-success-600 hover:bg-success-700 px-3 py-1 rounded-lg transition-all">
+                                    Update
+                                </button>
+                            </td>
+                        </tr>`;
+        });
+      }
+
+      toggleReviewModal(show, adKey = null, adData = null) {
+        if (show && adKey) {
+          this.selectedAdKey = adKey;
+          this.selectedAdData = adData;
+
+          // Populate modal fields
+          document.getElementById('modalPublisherEmail').textContent = adData.publisherEmail || adData.publisherId;
+          document.getElementById('modalAdName').textContent = adData.name;
+          document.getElementById('modalAdType').textContent = adData.type;
+          document.getElementById('generatedAdId').textContent = adData.adId || this.randomAdId();
+          document.getElementById('placementCode').value = '';
+
+          // Show modal with animation
+          this.reviewModal.classList.remove('hidden');
+          setTimeout(() => {
+            this.modalContent.classList.remove('scale-95', 'opacity-0');
+            this.modalContent.classList.add('scale-100', 'opacity-100');
+          }, 10);
+        } else {
+          // Hide modal with animation
+          this.modalContent.classList.remove('scale-100', 'opacity-100');
+          this.modalContent.classList.add('scale-95', 'opacity-0');
+          setTimeout(() => {
+            this.reviewModal.classList.add('hidden');
+          }, 300);
+        }
+      }
+
+      toggleCreateAdModal(show) {
+        if (show) {
+          // Reset form
+          this.adName.value = '';
+          this.adType.value = '';
+          this.adTypeBtns.forEach(btn => {
+            btn.classList.remove('border-primary-500', 'bg-primary-50');
+          });
+
+          // Show modal with animation
+          this.createAdModal.classList.remove('hidden');
+          setTimeout(() => {
+            this.createAdModalContent.classList.remove('scale-95', 'opacity-0');
+            this.createAdModalContent.classList.add('scale-100', 'opacity-100');
+          }, 10);
+        } else {
+          // Hide modal with animation
+          this.createAdModalContent.classList.remove('scale-100', 'opacity-100');
+          this.createAdModalContent.classList.add('scale-95', 'opacity-0');
+          setTimeout(() => {
+            this.createAdModal.classList.add('hidden');
+          }, 300);
+        }
+      }
+
+      approveAd() {
+        const adId = document.getElementById('generatedAdId').textContent;
+        const placementCode = document.getElementById('placementCode').value;
+        const category = document.getElementById('categorySelect').value;
+
+        if (!placementCode) {
+          this.showNotification("Please enter placement code", "error");
+          return;
+        }
+
+        // Update the existing ad
+        update(ref(db, `boostify/adUnits/${this.selectedAdKey}`), {
+          adId,
+          placementCode,
+          category,
+          status: "Approved",
+          impressions: 0,
+          clicks: 0,
+          ecpm: 0,
+          earnings: 0
+        }).then(() => {
+          this.showNotification('Ad approved successfully!', 'success');
+          this.toggleReviewModal(false);
+        }).catch(error => {
+          this.showNotification('Error approving ad: ' + error.message, 'error');
+        });
+      }
+
+      updateAdData(adKey) {
+        const impressions = parseInt(document.getElementById(`imp-${adKey}`).value) || 0;
+        const clicks = parseInt(document.getElementById(`clicks-${adKey}`).value) || 0;
+        const ecpm = parseFloat(document.getElementById(`ecpm-${adKey}`).value) || 0;
+        const earnings = parseFloat(document.getElementById(`earn-${adKey}`).value) || 0;
+
+        update(ref(db, `boostify/adUnits/${adKey}`), { impressions, clicks, ecpm, earnings })
+          .then(() => this.showNotification("Ad data updated successfully!", "success"))
+          .catch(err => this.showNotification("Error updating data: " + err.message, "error"));
+      }
+
+      createAd() {
+        const adName = this.adName.value.trim();
+        const adType = this.adType.value;
+
+        if (!adName || !adType) {
+          this.showNotification('Please provide a name and select an ad type.', 'error');
+          return;
+        }
+
+        const user = auth.currentUser;
+        if (!user) {
+          this.showNotification('Please log in to create an ad.', 'error');
+          return;
+        }
+
+        this.createAdBtn.disabled = true;
+        this.createBtnText.textContent = 'Creating...';
+        this.createSpinner.classList.remove('hidden');
+
+        const adData = {
+          name: adName,
+          type: adType,
+          status: "Pending",
+          createdAt: Date.now(),
+          publisherId: user.uid,
+          publisherEmail: user.email,
+          placementCode: this.generatePlacementCode(adType),
+          impressions: 0,
+          clicks: 0,
+          ecpm: 0,
+          earnings: 0
+        };
+
+        const adRef = push(ref(db, 'boostify/adUnits'));
+        set(adRef, adData)
+          .then(() => {
+            this.showNotification("Ad unit created successfully!", "success");
+            this.toggleCreateAdModal(false);
+            this.createAdBtn.disabled = false;
+            this.createBtnText.textContent = 'Create Ad';
+            this.createSpinner.classList.add('hidden');
+          })
+          .catch(error => {
+            console.error("Error creating ad:", error);
+            this.showNotification("Error creating ad: " + error.message, "error");
+            this.createAdBtn.disabled = false;
+            this.createBtnText.textContent = 'Create Ad';
+            this.createSpinner.classList.add('hidden');
+          });
+      }
+
+      showPlacementCode(code) {
+        const decodedCode = decodeURIComponent(code);
+        document.getElementById("placementCodeText").value = decodedCode;
+        this.codeModal.classList.remove("hidden");
+        setTimeout(() => {
+          this.codeModalContent.classList.remove("scale-95", "opacity-0");
+        }, 10);
+      }
+
+      copyPlacementCode() {
+        const codeText = document.getElementById("placementCodeText");
+        codeText.select();
+        codeText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(codeText.value).then(() => {
+          const copyBtn = document.getElementById('copyCodeBtn');
+          const originalText = copyBtn.innerHTML;
+          copyBtn.innerHTML = '<i class="fas fa-check"></i> <span>Copied!</span>';
+          setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+          }, 2000);
+        });
+      }
+
+      closeCodeModal() {
+        this.codeModalContent.classList.add("scale-95", "opacity-0");
+        setTimeout(() => {
+          this.codeModal.classList.add("hidden");
+        }, 300);
+      }
+
+      randomAdId() {
+        return Math.floor(10000000 + Math.random() * 90000000).toString();
+      }
+
+      generatePlacementCode(adType) {
+        const typeMap = {
+          'banner': 'banner-ad',
+          'inpage-push': 'inpage-push',
+          'popunder': 'popunder-ad',
+          'native': 'native-ad',
+          'direct-link': 'direct-link'
+        };
+
+        const adTypeClass = typeMap[adType.toLowerCase()] || 'boostify-ad';
+
+        return `<!-- Boostify ${adType} Ad Unit -->
+    <div class="${adTypeClass}" data-ad-unit-id="YOUR_AD_UNIT_ID">
+      <!-- Ad content will be loaded here -->
+    </div>`;
+      }
+
+      showNotification(message, type = 'success') {
+        const colors = {
+          success: 'bg-success-600',
+          error: 'bg-red-600',
+          info: 'bg-primary-600'
+        };
+
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg flex items-center ${colors[type]} animate-fadeIn`;
+        notification.innerHTML = `
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                    ${message}
+                `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.classList.add('opacity-0', 'translate-x-8');
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
+      }
+    }
+
+    // Initialize the admin panel when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      window.adminPanel = new AdminPanel();
+    });
+  </script>
+</body>
+
+</html>
