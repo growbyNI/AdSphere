@@ -635,7 +635,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleSidebar = () => {
     const isOpening = sidebar.classList.toggle('-translate-x-full');
     document.body.classList.toggle('sidebar-open');
-    
+
+
+    document.addEventListener('click', (e) => {
+          if (window.innerWidth < 768 &&
+            !this.sidebar.contains(e.target) &&
+            e.target !== this.menuBtn &&
+            !this.sidebar.classList.contains('-translate-x-full')) {
+            this.sidebar.classList.add('-translate-x-full');
+            document.body.classList.remove('sidebar-open');
+          }
+        });
     // On mobile, adjust main content when sidebar is open
     if (window.innerWidth < 768) {
       if (isOpening) {
